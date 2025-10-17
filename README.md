@@ -154,6 +154,43 @@ mix compile
 mix test
 ```
 
+## Releasing (Maintainers)
+
+This project uses GitHub Actions to automatically build precompiled NIFs for multiple platforms.
+
+### Release Process
+
+1. Update the version in `mix.exs`
+2. Update `CHANGELOG.md` with the new version and changes
+3. Commit the changes: `git commit -am "Release v0.x.0"`
+4. Create and push a git tag: `git tag v0.x.0 && git push origin v0.x.0`
+5. GitHub Actions will automatically:
+   - Build NIFs for all supported platforms (macOS, Linux, Windows)
+   - Create checksums for each binary
+   - Create a GitHub release with all artifacts
+6. After the release is created, publish to Hex: `mix hex.publish`
+
+### Supported Platforms
+
+Precompiled binaries are automatically built for:
+- macOS: `aarch64-apple-darwin` (Apple Silicon), `x86_64-apple-darwin` (Intel)
+- Linux: `x86_64-unknown-linux-gnu`, `aarch64-unknown-linux-gnu` (ARM64)
+- Windows: `x86_64-pc-windows-msvc`, `x86_64-pc-windows-gnu`
+
+## CI/CD
+
+The project includes two GitHub Actions workflows:
+
+- **CI** (`.github/workflows/ci.yml`): Runs on every push/PR
+  - Tests across multiple Elixir/OTP versions
+  - Runs formatting checks
+  - Runs Rust linting (clippy, rustfmt)
+
+- **Release** (`.github/workflows/release.yml`): Runs on version tags
+  - Builds precompiled NIFs for all platforms
+  - Creates GitHub release with artifacts
+  - Generates checksums for verification
+
 ## License
 
 MIT
