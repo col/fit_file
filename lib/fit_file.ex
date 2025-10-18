@@ -76,7 +76,8 @@ defmodule FitFile do
   @spec parse(String.t() | binary()) :: parse_result()
   def parse(input) when is_binary(input) do
     # Check if it looks like a file path (heuristic: doesn't contain binary data)
-    if String.printable?(input) and (String.starts_with?(input, "/") or String.contains?(input, ".")) do
+    if String.printable?(input) and
+         (String.starts_with?(input, "/") or String.contains?(input, ".")) do
       from_file(input)
     else
       from_binary(input)

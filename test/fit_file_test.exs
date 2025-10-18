@@ -97,7 +97,10 @@ defmodule FitFileTest do
 
       if length(record_messages) > 0 do
         first_record = List.first(record_messages)
-        IO.puts("\nFirst record fields: #{Enum.map(first_record.fields, & &1.name) |> Enum.join(", ")}")
+
+        IO.puts(
+          "\nFirst record fields: #{Enum.map(first_record.fields, & &1.name) |> Enum.join(", ")}"
+        )
       end
     end
   end
