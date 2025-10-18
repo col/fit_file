@@ -19,7 +19,7 @@ Add `fit_file` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:fit_file, "~> 0.1.0"}
+    {:fit_file, "~> 0.1.3"}
   ]
 end
 ```
