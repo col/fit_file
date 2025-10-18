@@ -12,7 +12,7 @@ defmodule FitFile do
   ```elixir
   def deps do
     [
-      {:fit_file, "~> 0.1.3"}
+      {:fit_file, "~> 0.1.4"}
     ]
   end
   ```
