@@ -54,20 +54,43 @@ Once you push the tag, GitHub Actions will automatically:
 - [ ] Verify checksums are present
 - [ ] Download and test a binary on your platform (optional)
 
-### 5. Publish to Hex
+### 5. Generate Checksum File
 
-After the GitHub release is created successfully:
+**IMPORTANT**: This step must be done AFTER the GitHub release is complete and BEFORE publishing to Hex.
 
 ```bash
 # Ensure you're on the tagged version
 git checkout v0.x.0
 
-# Publish to Hex
+# Download all precompiled NIFs and generate checksum file
+mix rustler_precompiled.download FitFile.Native --all --print
+```
+
+This will:
+- Download all 6 precompiled NIFs from the GitHub release
+- Generate `checksums-Elixir.FitFile.Native.exs` in your project root
+- Display the checksums for verification
+
+**Verify the checksum file was created:**
+```bash
+ls -la checksums-Elixir.FitFile.Native.exs
+```
+
+The file should exist and contain checksums for all platforms. This file is required for users to download precompiled binaries.
+
+**Note**: This file should NOT be committed to git (it's in `.gitignore`), but it WILL be included in the Hex package automatically via the `files:` list in `mix.exs`.
+
+### 6. Publish to Hex
+
+Now publish the package with the checksum file included:
+
+```bash
+# Publish to Hex (will include the checksum file)
 mix hex.publish
 ```
 
 Follow the prompts to:
-- Review package contents
+- Review package contents (verify checksum file is listed)
 - Confirm the publication
 
 ### 6. Post-Release
