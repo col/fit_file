@@ -8,7 +8,7 @@ defmodule FitFile.Native do
   use RustlerPrecompiled,
     otp_app: :fit_file,
     crate: "fit_file_native",
-    base_url: "https://github.com/yourusername/fit_file/releases/download/v#{version}",
+    base_url: "https://github.com/col/fit_file/releases/download/v#{version}",
     force_build:
       System.get_env("RUSTLER_PRECOMPILATION_FIT_FILE_BUILD") in ["1", "true"] or
         Mix.env() == :dev or Mix.env() == :test,

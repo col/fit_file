@@ -44,7 +44,7 @@ Once you push the tag, GitHub Actions will automatically:
    - Generate SHA256 checksums
 
 3. **Monitor Progress**:
-   - Visit: `https://github.com/yourusername/fit_file/actions`
+   - Visit: `https://github.com/col/fit_file/actions`
    - Watch the "Precompile NIFs" workflow
    - Builds typically complete in 5-10 minutes (parallel execution)
 
