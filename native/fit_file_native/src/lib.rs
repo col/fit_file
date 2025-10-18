@@ -54,7 +54,14 @@ fn value_to_string(value: &fitparser::Value) -> String {
         Value::Timestamp(v) => format!("{:?}", v),
         Value::Enum(v) => v.to_string(),
         Value::Array(values) => {
-            format!("[{}]", values.iter().map(value_to_string).collect::<Vec<_>>().join(", "))
+            format!(
+                "[{}]",
+                values
+                    .iter()
+                    .map(value_to_string)
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
         }
         Value::Invalid => String::from("invalid"),
     }
@@ -92,10 +99,7 @@ fn convert_record(record: &fitparser::FitDataRecord) -> DataRecord {
 fn parse_from_bytes<'a>(env: Env<'a>, data: Vec<u8>) -> NifResult<Term<'a>> {
     match fitparser::from_bytes(&data) {
         Ok(records) => {
-            let converted_records: Vec<DataRecord> = records
-                .iter()
-                .map(convert_record)
-                .collect();
+            let converted_records: Vec<DataRecord> = records.iter().map(convert_record).collect();
 
             Ok((atoms::ok(), converted_records).encode(env))
         }
@@ -123,10 +127,7 @@ fn parse_from_file<'a>(env: Env<'a>, path: String) -> NifResult<Term<'a>> {
     // Parse the FIT file
     match fitparser::from_reader(&mut reader) {
         Ok(records) => {
-            let converted_records: Vec<DataRecord> = records
-                .iter()
-                .map(convert_record)
-                .collect();
+            let converted_records: Vec<DataRecord> = records.iter().map(convert_record).collect();
 
             Ok((atoms::ok(), converted_records).encode(env))
         }
