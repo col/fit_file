@@ -38,7 +38,7 @@ defmodule FitFile.MixProject do
   defp package do
     [
       name: "fit_file",
-      files: ~w(lib native .formatter.exs mix.exs README.md LICENSE CHANGELOG.md),
+      files: ~w(lib native .formatter.exs mix.exs README.md LICENSE CHANGELOG.md checksum-*.exs),
       licenses: ["MIT"],
       links: %{
         "GitHub" => "https://github.com/col/fit_file",

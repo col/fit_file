@@ -31,3 +31,4 @@ Cargo.lock
 
 # Rustler precompiled
 /priv/native/
+checksum-Elixir.FitFile.Native.exs
