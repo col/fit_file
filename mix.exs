@@ -1,10 +1,11 @@
 defmodule FitFile.MixProject do
   use Mix.Project
 
+  @version "0.1.2"
   def project do
     [
       app: :fit_file,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -39,7 +40,11 @@ defmodule FitFile.MixProject do
       name: "fit_file",
       files: ~w(lib native .formatter.exs mix.exs README.md LICENSE CHANGELOG.md),
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/yourusername/fit_file"}
+      links: %{
+        "GitHub" => "https://github.com/col/fit_file",
+        "Fitparser on Cargo" => "https://docs.rs/fitparser/latest/fitparser/",
+        "Garmin FitSDK" => "https://developer.garmin.com/fit/overview/"
+      }
     ]
   end
 

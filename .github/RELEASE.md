@@ -34,9 +34,9 @@ git push origin v0.x.0
 Once you push the tag, GitHub Actions will automatically:
 
 1. **Build NIFs** for all platforms:
-   - macOS (Apple Silicon and Intel)
-   - Linux (x86_64 and ARM64)
-   - Windows (MSVC and GNU)
+   - All platforms built using `philss/rustler-precompiled-action`
+   - Cross-compilation handled automatically (Linux ARM64 uses `cross` internally)
+   - Parallel builds for faster completion
 
 2. **Create Release**:
    - Generate release notes from commits
@@ -46,7 +46,7 @@ Once you push the tag, GitHub Actions will automatically:
 3. **Monitor Progress**:
    - Visit: `https://github.com/yourusername/fit_file/actions`
    - Watch the "Precompile NIFs" workflow
-   - Builds typically complete in 10-15 minutes
+   - Builds typically complete in 5-10 minutes (parallel execution)
 
 ### 4. Verify Release
 
@@ -85,11 +85,16 @@ If the GitHub Actions build fails:
 
 1. Check the workflow logs for specific errors
 2. Common issues:
-   - Cross-compilation toolchain problems (Linux ARM64)
-   - Rust toolchain version mismatches
-   - Missing dependencies
+   - **rustler-precompiled-action failures**: The action handles all compilation
+     - Check if the Rust target is properly configured in the matrix
+     - Verify project version extraction from mix.exs is working
+   - **Cross-compilation issues**: The action uses `cross` internally for ARM64
+     - Usually resolved automatically by the action
+   - **Rust toolchain**: Action installs the correct toolchain automatically
 
 3. Fix the issue and create a new patch version
+
+**Note**: The workflow uses `philss/rustler-precompiled-action` which greatly simplifies the build process. Most compilation issues are handled automatically by this action.
 
 ### Failed Hex Publication
 

@@ -186,10 +186,11 @@ The project includes two GitHub Actions workflows:
   - Runs formatting checks
   - Runs Rust linting (clippy, rustfmt)
 
-- **Release** (`.github/workflows/release.yml`): Runs on version tags
-  - Builds precompiled NIFs for all platforms
+- **Release** (`.github/workflows/release.yml`): Runs on tags and native path changes
+  - Builds precompiled NIFs for all platforms using `rustler-precompiled-action`
+  - Handles cross-compilation automatically (including Linux ARM64)
   - Creates GitHub release with artifacts
-  - Generates checksums for verification
+  - Can be triggered manually via workflow_dispatch
 
 ## License
 

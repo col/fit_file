@@ -2,132 +2,71 @@ name: Precompile NIFs
 
 on:
   push:
+    branches:
+      - main
+    paths:
+      - "native/**"
+      - ".github/workflows/release.yml"
     tags:
-      - 'v*'
-
-permissions:
-  contents: write
+      - "*"
+  pull_request:
+    paths:
+      - ".github/workflows/release.yml"
+  workflow_dispatch:
 
 jobs:
   build_release:
-    name: Build release artifacts
-    runs-on: ${{ matrix.os }}
+    name: NIF ${{ matrix.nif }} - ${{ matrix.job.target }} (${{ matrix.job.os }})
+    runs-on: ${{ matrix.job.os }}
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
-        include:
-          # macOS
-          - os: macos-14
-            target: aarch64-apple-darwin
-          - os: macos-13
-            target: x86_64-apple-darwin
-
-          # Linux
-          - os: ubuntu-22.04
-            target: x86_64-unknown-linux-gnu
-          - os: ubuntu-22.04
-            target: aarch64-unknown-linux-gnu
-
-          # Windows
-          - os: windows-2022
-            target: x86_64-pc-windows-msvc
-          - os: windows-2022
-            target: x86_64-pc-windows-gnu
+        nif: ["2.15"]
+        job:
+          - { target: aarch64-unknown-linux-gnu, os: ubuntu-22.04, use-cross: true }
+          - { target: aarch64-apple-darwin, os: macos-13 }
+          - { target: x86_64-apple-darwin, os: macos-13 }
+          - { target: x86_64-unknown-linux-gnu, os: ubuntu-22.04 }
+          - { target: x86_64-pc-windows-gnu, os: windows-2022 }
+          - { target: x86_64-pc-windows-msvc, os: windows-2022 }
 
     steps:
-      - name: Checkout
+      - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Set up Elixir
-        uses: erlef/setup-beam@v1
-        with:
-          otp-version: '26.2'
-          elixir-version: '1.18.0'
+      - name: Extract project version
+        shell: bash
+        run: |
+          echo "PROJECT_VERSION=$(sed -n 's/^      version: "\(.*\)"/\1/p' mix.exs | head -n1)" >> $GITHUB_ENV
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          toolchain: stable
+          target: ${{ matrix.job.target }}
 
-      - name: Install cross-compilation tools (Linux ARM64)
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu
+      - name: Build the project
+        id: build-crate
+        uses: philss/rustler-precompiled-action@v1.1.4
+        with:
+          project-name: fit_file_native
+          project-version: ${{ env.PROJECT_VERSION }}
+          target: ${{ matrix.job.target }}
+          nif-version: ${{ matrix.nif }}
+          use-cross: ${{ matrix.job.use-cross }}
+          project-dir: "native/fit_file_native"
 
-      - name: Install dependencies
-        run: mix deps.get
-
-      - name: Build native library
-        env:
-          RUSTLER_PRECOMPILATION_FIT_FILE_BUILD: "true"
-          CARGO_BUILD_TARGET: ${{ matrix.target }}
-          RUSTLER_TARGET: ${{ matrix.target }}
-        run: |
-          mix compile
-
-      - name: Create precompiled artifact (Unix)
-        if: runner.os != 'Windows'
-        run: |
-          mkdir -p artifacts
-          cd native/fit_file_native/target/${{ matrix.target }}/release
-          if [ -f libfit_file_native.so ]; then
-            tar -czf $GITHUB_WORKSPACE/artifacts/libfit_file_native-${{ github.ref_name }}-nif-2.15-${{ matrix.target }}.tar.gz libfit_file_native.so
-          elif [ -f libfit_file_native.dylib ]; then
-            tar -czf $GITHUB_WORKSPACE/artifacts/libfit_file_native-${{ github.ref_name }}-nif-2.15-${{ matrix.target }}.tar.gz libfit_file_native.dylib
-          fi
-
-      - name: Create precompiled artifact (Windows)
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          mkdir -p artifacts
-          cd native/fit_file_native/target/${{ matrix.target }}/release
-          tar -czf $GITHUB_WORKSPACE/artifacts/libfit_file_native-${{ github.ref_name }}-nif-2.15-${{ matrix.target }}.tar.gz fit_file_native.dll
-
-      - name: Upload artifact
+      - name: Artifact upload
         uses: actions/upload-artifact@v4
         with:
-          name: nif-${{ matrix.target }}
-          path: artifacts/*.tar.gz
-          retention-days: 1
+          name: ${{ steps.build-crate.outputs.file-name }}
+          path: ${{ steps.build-crate.outputs.file-path }}
 
-  create_release:
-    name: Create GitHub Release
-    needs: build_release
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+      - name: Publish archives and packages
+        uses: softprops/action-gh-release@v2
         with:
-          path: artifacts
-
-      - name: Create checksums
-        run: |
-          cd artifacts
-          for dir in nif-*; do
-            if [ -d "$dir" ]; then
-              cd "$dir"
-              for file in *.tar.gz; do
-                if [ -f "$file" ]; then
-                  shasum -a 256 "$file" | tee "${file}.sha256"
-                fi
-              done
-              cd ..
-            fi
-          done
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          draft: false
-          prerelease: false
-          generate_release_notes: true
           files: |
-            artifacts/nif-*/*.tar.gz
-            artifacts/nif-*/*.sha256
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            ${{ steps.build-crate.outputs.file-path }}
+        if: startsWith(github.ref, 'refs/tags/')
